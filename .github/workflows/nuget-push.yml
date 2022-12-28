@@ -1,0 +1,33 @@
+name: "RakisUtil Push to NUGet repository"
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build:
+
+    env:
+      BUILD_CONFIG: 'Release'
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3.2.0
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 6.0.x
+
+    - name: Restore
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build --configuration Release --no-restore
+
+    - name: Run tests
+      run: dotnet test /p:Configuration=Release --no-restore --no-build --verbosity normal
+      
+    - name: Publish
+      run: dotnet nuget push **\*.nupkg -Source 'https://api.nuget.org/v3/index.json' -ApiKey ${{secrets.NUGET_API_KEY}}

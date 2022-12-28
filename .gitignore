@@ -1,0 +1,7 @@
+# Ignore Visual Studio Code files
+.vs
+.vscode
+
+# Ignore build artefacts
+bin
+obj
