@@ -1,6 +1,7 @@
 name: "RakisUtil Push to NUGet repository"
 
 on:
+  workflow_dispatch
   release:
     types: [published]
 
