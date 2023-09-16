@@ -16,7 +16,11 @@
 
 using Rakis.Logging.Config;
 using Rakis.Logging.Sinks;
+using System;
 using static System.Environment;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.IO;
+using System.Collections.Generic;
 
 namespace Rakis.Logging.UnitTests
 {
@@ -230,7 +234,7 @@ namespace Rakis.Logging.UnitTests
                     .AddToConfig()
                 .Build();
             Logger.GetLogger(typeof(Logger)).Info.Log("Hi there!");
-            Assert.AreEqual(output.Count(), 1, "The reactive logger should have deposited log lines.");
+            Assert.AreEqual(output.Count, 1, "The reactive logger should have deposited log lines.");
         }
     }
 }

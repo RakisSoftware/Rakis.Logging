@@ -53,18 +53,28 @@ namespace Rakis.Logging.Config
         private bool haveRootConfig = false;
         private LogConfig rootConfig;
 
+        /**
+         * <summary>Create a new <see cref="Configurer"/> which will save log files under the current working directory.</summary>
+         */
         public Configurer()
         {
             ConfigPath = null;
             TargetBasePath = ".";
         }
 
-        public Configurer(string path = "rakisLog.properties")
+        /**
+         * <summary>Create a new <see cref="Configurer"/> which will save log files under the current working directory and is set to load
+         * configuration from <paramref name="path"/>.</summary>
+         */
+        public Configurer(string path)
         {
             ConfigPath = path;
             TargetBasePath = ".";
         }
 
+        /**
+         * <summary>Add <paramref name="config"/> to the list of configurations.</summary>
+         */
         public Configurer AddConfig(LogConfig config)
         {
             if (config.Name == RootLoggerName)
@@ -100,6 +110,9 @@ namespace Rakis.Logging.Config
             return this;
         }
 
+        /**
+         * <summary>Store any logfiles in the user's "AppData\Local" directory. This implies an Owner and AppName must be set.</summary>
+         */
         public Configurer UsingAppDataLocal()
         {
             TargetBasePath = Path.Combine(GetEnvironmentVariable("HOMEDRIVE") + GetEnvironmentVariable("HOMEPATH"), "AppData", "Local");
@@ -107,6 +120,9 @@ namespace Rakis.Logging.Config
             return this;
         }
 
+        /**
+         * <summary>Store any logfiles in the user's "AppData\LocalLow" directory. This implies an Owner and AppName must be set.</summary>
+         */
         public Configurer UsingAppDataLocalLow()
         {
             TargetBasePath = Path.Combine(GetEnvironmentVariable("HOMEDRIVE") + GetEnvironmentVariable("HOMEPATH"), "AppData", "LocalLow");
@@ -114,6 +130,9 @@ namespace Rakis.Logging.Config
             return this;
         }
 
+        /**
+         * <summary>Store any logfiles in the user's "AppData\Roaming" directory. This implies an Owner and AppName must be set.</summary>
+         */
         public Configurer UsingAppDataRoaming()
         {
             TargetBasePath = Path.Combine(GetEnvironmentVariable("HOMEDRIVE") + GetEnvironmentVariable("HOMEPATH"), "AppData", "Roaming");
@@ -121,44 +140,69 @@ namespace Rakis.Logging.Config
             return this;
         }
 
+        /**
+         * <summary>Store any logfiles in the user's home-directory.</summary>
+         */
         public Configurer UsingHome()
         {
             TargetBasePath = GetEnvironmentVariable("HOMEDRIVE") + GetEnvironmentVariable("HOMEPATH");
             return this;
         }
 
+        /**
+         * <summary>Store any logfiles in the user's "Documents" folder.</summary>
+         */
         public Configurer UsingDocuments()
         {
             TargetBasePath = Path.Combine(GetEnvironmentVariable("HOMEDRIVE") + GetEnvironmentVariable("HOMEPATH"), "Documents");
             return this;
         }
 
+        /**
+         * <summary>Add <paramref name="owner"/> as an "owner"-level subdirectory name.</summary>
+         */
         public Configurer UsingOwner(string owner)
         {
             TargetOwner = owner;
             return this;
         }
 
+        /**
+         * <summary>Add <paramref name="name"/> as an "app-name" subdirectory name.</summary>
+         */
         public Configurer UsingAppName(string name)
         {
             TargetName = name;
             return this;
         }
 
+        /**
+         * <summary>Start a <see cref="ConsoleLoggerConfigurer"/> for the root-logger.</summary>
+         */
         public ConsoleLoggerConfigurer WithRootConsoleLogger(LogLevel level = LogLevel.INFO)
         {
             return new ConsoleLoggerConfigurer(this).withName(RootLoggerName).withThreshold(level);
         }
 
+        /**
+         * <summary>Start a <see cref="ConsoleLoggerConfigurer"/>.</summary>
+         */
         public ConsoleLoggerConfigurer WithConsoleLogger(string fullName = null, LogLevel level = LogLevel.INFO)
         {
             return new ConsoleLoggerConfigurer(this).withFullName(fullName).withThreshold(level);
         }
+
+        /**
+         * <summary>Start a <see cref="ConsoleLoggerConfigurer"/>.</summary>
+         */
         public ConsoleLoggerConfigurer WithConsoleLogger(string name, string fullName, LogLevel level = LogLevel.INFO)
         {
             return new ConsoleLoggerConfigurer(this).withName(name).withFullName(fullName).withThreshold(level);
         }
 
+        /**
+         * <summary>Copy this central <see cref="Configurer"/>'s logfile settings to the new <paramref name="configurer"/>.</summary>
+         */
         private FileLoggerConfigurer AddCommonSettings(FileLoggerConfigurer configurer)
         {
             return configurer
@@ -167,6 +211,9 @@ namespace Rakis.Logging.Config
                 .UsingTargetBasePath(TargetBasePath, targetNamesRequired);
         }
 
+        /**
+         * <summary>Start a <see cref="FileLoggerConfigurer"/> for the root-logger.</summary>
+         */
         public FileLoggerConfigurer WithRootFileLogger(string path = null, LogLevel level = LogLevel.INFO)
         {
             return AddCommonSettings(new FileLoggerConfigurer(this))
@@ -175,33 +222,74 @@ namespace Rakis.Logging.Config
                 .withThreshold(level);
         }
 
+        /**
+         * <summary>Start a <see cref="FileLoggerConfigurer"/>.</summary>
+         */
         public FileLoggerConfigurer WithFileLogger(string fullName = null, LogLevel level = LogLevel.INFO)
         {
             return AddCommonSettings(new FileLoggerConfigurer(this)).withFullName(fullName).withThreshold(level);
         }
+
+        /**
+         * <summary>Start a <see cref="FileLoggerConfigurer"/>.</summary>
+         */
         public FileLoggerConfigurer WithFileLogger(string name, string fullName, LogLevel level = LogLevel.INFO)
         {
             return AddCommonSettings(new FileLoggerConfigurer(this)).withName(name).withFullName(fullName).withThreshold(level);
         }
 
+        /**
+         * <summary>Start a <see cref="ReactiveLoggerConfigurer"/> as the root-logger.</summary>
+         */
+        public ReactiveLoggerConfigurer WithReactiveRootLogger(LogLevel level = LogLevel.INFO)
+        {
+            return new ReactiveLoggerConfigurer(this).withFullName(RootLoggerName).withThreshold(level);
+        }
+
+        /**
+         * <summary>Start a <see cref="ReactiveLoggerConfigurer"/>.</summary>
+         */
         public ReactiveLoggerConfigurer WithReactiveLogger(string fullName = null, LogLevel level = LogLevel.INFO)
         {
             return new ReactiveLoggerConfigurer(this).withFullName(fullName).withThreshold(level);
         }
+
+        /**
+         * <summary>Start a <see cref="ReactiveLoggerConfigurer"/>.</summary>
+         */
         public ReactiveLoggerConfigurer WithReactiveLogger(string name, string fullName, LogLevel level = LogLevel.INFO)
         {
             return new ReactiveLoggerConfigurer(this).withName(name).withFullName(fullName).withThreshold(level);
         }
 
-        public CustomLoggerConfigurer WithCustomLogger()
+        /**
+         * <summary>Start a <see cref="CustomLoggerConfigurer"/> as the root-logger.</summary>
+         */
+        public CustomLoggerConfigurer WithCustomRootLogger(LogLevel level = LogLevel.INFO)
         {
-            return new CustomLoggerConfigurer(this);
-        }
-        public CustomLoggerConfigurer WithCustomLogger(ILoggingSink sink)
-        {
-            return new CustomLoggerConfigurer(this).UsingSink(sink);
+            return new CustomLoggerConfigurer(this).withFullName(RootLoggerName).withThreshold(level);
         }
 
+        /**
+         * <summary>Start a <see cref="CustomLoggerConfigurer"/>.</summary>
+         */
+        public CustomLoggerConfigurer WithCustomLogger(string fullName = null, LogLevel level = LogLevel.INFO)
+        {
+            return new CustomLoggerConfigurer(this).withFullName(fullName).withThreshold(level);
+        }
+
+        /**
+         * <summary>Start a <see cref="CustomLoggerConfigurer"/>.</summary>
+         */
+        public CustomLoggerConfigurer WithCustomLogger(ILoggingSink sink, string name, string fullName, LogLevel level = LogLevel.INFO)
+        {
+            return new CustomLoggerConfigurer(this).UsingSink(sink).withName(name).withFullName(fullName).withThreshold(level);
+        }
+
+        /**
+         * <summary>Check if the given <paramref name="line"/> has any contents, ignoring comment lines. If so, split the line at the first equals-sign,
+         * and return the individual parts as, respectively, <paramref name="path"/> and <paramref name="value"/>.</summary>
+         */
         private bool ParseLine(string line, out string path, out string value)
         {
             path = "";
@@ -221,8 +309,19 @@ namespace Rakis.Logging.Config
             return true;
         }
 
-        public Configurer Load()
+        /**
+         * <summary>Load the configuration file specified.</summary>
+         */
+        public Configurer Load(string path = null)
         {
+            if (path != null)
+            {
+                ConfigPath = path;
+            }
+            if (ConfigPath == null)
+            {
+                throw new LogConfigurationException("No configuration file provided to load.");
+            }
             if (!File.Exists(ConfigPath))
             {
                 throw new LogConfigurationException($"Configuration file '{ConfigPath}' not found.");
@@ -317,6 +416,9 @@ namespace Rakis.Logging.Config
             Logger.RootLogger.Info?.Log($"Logger initialized with root level '{Logger.RootLogger.Threshold}'");
         }
 
+        /**
+         * <summary>Build a <see cref="Logger"/> from the given <paramref name="config"/>.</summary>
+         */
         private ILogger BuildLogger(LogConfig config)
         {
             // Find parent logger. If null then this is the RootLogger

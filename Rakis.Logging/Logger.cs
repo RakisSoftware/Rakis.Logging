@@ -47,6 +47,8 @@ namespace Rakis.Logging
 
         public static ILogger RootLogger { get; set; } = new Logger("DefaultConsoleLogger", new ConsoleLogger(), level: LogLevel.INFO);
 
+        private const string CONFIGPATH_DEFAULT = "rakisLog.properties";
+
         private static Dictionary<string, ILogger> loggers = new();
 
         public static void ClearLoggers()
@@ -55,16 +57,25 @@ namespace Rakis.Logging
             RootLogger = new Logger("DefaultConsoleLogger", new ConsoleLogger(), level: LogLevel.INFO);
         }
 
+        /**
+         * <summary>Return a new <see cref="Configurer"/> to modify the current configuration.</summary>
+         */
         public static Configurer Configuration()
         {
             return new Configurer();
         }
 
-        public static Configurer ConfigurationFromFile(string configPath = "rakisLog.properties")
+        /**
+         * <summary>Return a new <see cref="Configurer"/> set to load a configuration file. If not path is specified, <see cref="CONFIGPATH_DEFAULT"/> is used.</summary>
+         */
+        public static Configurer ConfigurationFromFile(string configPath = CONFIGPATH_DEFAULT)
         {
             return new Configurer(configPath);
         }
 
+        /**
+         * <summary>Return a new <see cref="Configurer"/>, after first wiping the current settings.</summary>
+         */
         public static Configurer DefaultConfiguration()
         {
             ClearLoggers();
@@ -72,11 +83,17 @@ namespace Rakis.Logging
             return new Configurer();
         }
 
+        /**
+         * <summary>Add an <see cref="ILogger"/> conforming logger object.</summary>
+         */
         public static void AddLogger(ILogger logger)
         {
             loggers.Add(logger.FullName, logger);
         }
 
+        /**
+         * <summary>Return the best matching <see cref="ILogger"/> given <paramref name="key"/>.</summary>
+         */
         public static ILogger FindLogger(string key)
         {
             if ((key == null) || key.Length == 0)
@@ -91,6 +108,9 @@ namespace Rakis.Logging
             return (index <= 0) ? RootLogger : FindLogger(key.Substring(0, index));
         }
 
+        /**
+         * <summary>Try to find the <see cref="ILogger"/> matching <paramref name="name"/>, or add (and return) a new one using the best match as parent.</summary>
+         */
         public static ILogger GetLogger(string name)
         {
             var result = FindLogger(name);
@@ -102,6 +122,9 @@ namespace Rakis.Logging
             return result;
         }
 
+        /**
+         * <summary>Call <see cref="GetLogger(string)"/> using the fully qualified type name of <paramref name="type"/>.</summary>
+         */
         public static ILogger GetLogger(Type type)
         {
             return GetLogger(type.FullName);
