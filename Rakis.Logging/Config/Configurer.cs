@@ -299,14 +299,11 @@ namespace Rakis.Logging.Config
             {
                 return false;
             }
-            string[] parts = line.Split("=");
-            if (parts.Length != 2)
-            {
-                return false;
-            }
-            path = parts[0].Trim();
-            value = parts[1].Trim();
-            return true;
+            var index = line.IndexOf('=');
+            path = (index == -1) ? line : line.Substring(0, index).Trim();
+            value = (index == -1) ? "" : line.Substring(index+1).Trim();
+
+            return path != "";
         }
 
         /**
@@ -379,6 +376,7 @@ namespace Rakis.Logging.Config
                             config.Options.Add(trimmedToken.Substring(0, equalsIndex), trimmedToken.Substring(equalsIndex + 1));
                         }
                     }
+                    config.Type = type;
                     if (config.Level == null)
                     {
                         throw new LogConfigurationException("Every line must specify a level.");
@@ -389,6 +387,7 @@ namespace Rakis.Logging.Config
                     if (fullName == RootLoggerName)
                     {
                         rootConfig = config;
+                        haveRootConfig = true;
                     }
                     else
                     {

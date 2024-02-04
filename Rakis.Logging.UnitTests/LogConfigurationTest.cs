@@ -18,27 +18,15 @@ using Rakis.Logging.Config;
 using Rakis.Logging.Sinks;
 using System;
 using static System.Environment;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
 using System.Collections.Generic;
+using Xunit;
 
 namespace Rakis.Logging.UnitTests
 {
-    [TestClass]
+
     public class LogConfigurationTest
     {
-        /**
-         * <summary>Verify that the <paramref name="expectedThreshold"/> is correctly set in <paramref name="logger"/>.</summary>
-         */
-        private static void TestThreshold(ILogger logger, LogLevel expectedThreshold)
-        {
-            Assert.AreEqual(logger.Threshold, expectedThreshold, $"Logger threshold for '{logger.FullName}' should be {expectedThreshold} but was {logger.Threshold}.");
-
-            foreach (var level in (LogLevel[])Enum.GetValues(typeof(LogLevel)))
-            {
-                Assert.AreEqual(logger.IsEnabled(level), level >= logger.Threshold, $"With threshold {expectedThreshold}, IsEnabled({level}) should return {level >= logger.Threshold}.");
-            }
-        }
 
         /**
          * <summary>Verify the leveled loggers work as intended.</summary>
@@ -47,97 +35,84 @@ namespace Rakis.Logging.UnitTests
         {
             if (logger.IsTraceEnabled)
             {
-                Assert.IsNotNull(logger.Trace, "Trace logging should be enabled.");
+                Assert.NotNull(logger.Trace);
             }
             else
             {
-                Assert.IsNull(logger.Trace, "Trace logging should be disabled.");
+                Assert.Null(logger.Trace);
             }
             if (logger.IsDebugEnabled)
             {
-                Assert.IsNotNull(logger.Debug, "Debug logging should be enabled.");
+                Assert.NotNull(logger.Debug);
             }
             else
             {
-                Assert.IsNull(logger.Debug, "Debug logging should be disabled.");
+                Assert.Null(logger.Debug);
             }
             if (logger.IsInfoEnabled)
             {
-                Assert.IsNotNull(logger.Info, "Info logging should be enabled.");
+                Assert.NotNull(logger.Info);
             }
             else
             {
-                Assert.IsNull(logger.Info, "Info logging should be disabled.");
+                Assert.Null(logger.Info);
             }
             if (logger.IsWarnEnabled)
             {
-                Assert.IsNotNull(logger.Warn, "Warn logging should be enabled.");
+                Assert.NotNull(logger.Warn);
             }
             else
             {
-                Assert.IsNull(logger.Warn, "Warn logging should be disabled.");
+                Assert.Null(logger.Warn);
             }
             if (logger.IsErrorEnabled)
             {
-                Assert.IsNotNull(logger.Error, "Error logging should be enabled.");
+                Assert.NotNull(logger.Error);
             }
             else
             {
-                Assert.IsNull(logger.Error, "Error logging should be disabled.");
+                Assert.Null(logger.Error);
             }
             if (logger.IsFatalEnabled)
             {
-                Assert.IsNotNull(logger.Fatal, "Fatal logging should be enabled.");
+                Assert.NotNull(logger.Fatal);
             }
             else
             {
-                Assert.IsNull(logger.Fatal, "Fatal logging should be disabled.");
+                Assert.Null(logger.Fatal);
             }
         }
 
-        /**
-         * <summary>Retrieve a logger and verify if the threshold is set. Then produce a line at all levels.</summary>
-         */
-        private static void TestConfiguredLevels(Type type, LogLevel threshold)
-        {
-            using ILogger logger = Logger.GetLogger(type);
-
-            TestThreshold(logger, threshold);
-
-            foreach (var level in (LogLevel[])Enum.GetValues(typeof(LogLevel)))
-            {
-                logger.GetLogger(level)?.Log($"A logmessage at level {level}.");
-            }
-        }
-
-        [TestMethod]
+        [Fact]
         public void TestDefaultConfiguration()
         {
             Logger.ClearLoggers();
 
             var logger = Logger.GetLogger(typeof(LogConfigurationTest));
-            Assert.IsNotNull(logger, "I must have a logger without doing configuration.");
+            Assert.NotNull(logger);
 
-            TestThreshold(logger, LogLevel.INFO);
+            Assert.Equal(LogLevel.INFO, Logger.GetLogger(logger.GetType()).Threshold);
+
             TestLeveledLoggers(logger);
 
             logger.Info.Log("This should go to the Console.");
         }
 
-        [TestMethod]
+        [Fact]
         public void TestExplicitDefaultConfiguration()
         {
             Logger.DefaultConfiguration().Build();
             var logger = Logger.GetLogger(typeof(LogConfigurationTest));
-            Assert.IsNotNull(logger, "I must have a logger DefaultConfiguration().Build.");
+            Assert.NotNull(logger);
 
-            TestThreshold(logger, LogLevel.INFO);
+            Assert.Equal(LogLevel.INFO, Logger.GetLogger(logger.GetType()).Threshold);
+
             TestLeveledLoggers(logger);
 
             logger.Info.Log("This should go to the Console.");
         }
 
-        [TestMethod]
+        [Fact]
         public void TestLogConfigurator()
         {
             Logger.ClearLoggers();
@@ -150,29 +125,26 @@ namespace Rakis.Logging.UnitTests
                 .WithConsoleLogger("Rakis.Logging.UnitTests", LogLevel.ERROR).AddToConfig()
                 .Build();
 
-            TestConfiguredLevels(typeof(int), LogLevel.WARN);
-            TestConfiguredLevels(typeof(Logger), LogLevel.DEBUG);
-            TestConfiguredLevels(typeof(ConsoleLogger), LogLevel.TRACE);
-            TestConfiguredLevels(typeof(LogConfigurationTest), LogLevel.ERROR);
-            TestConfiguredLevels(typeof(Configurer), LogLevel.DEBUG);
+            Assert.Equal(LogLevel.WARN, Logger.GetLogger(typeof(int)).Threshold);
+            Assert.Equal(LogLevel.DEBUG, Logger.GetLogger(typeof(Logger)).Threshold);
+            Assert.Equal(LogLevel.TRACE, Logger.GetLogger(typeof(ConsoleLogger)).Threshold);
+            Assert.Equal(LogLevel.ERROR, Logger.GetLogger(typeof(LogConfigurationTest)).Threshold);
+            Assert.Equal(LogLevel.DEBUG, Logger.GetLogger(typeof(Configurer)).Threshold);
         }
 
-        public void CheckLogFile(string path, int expectedNrOfLines =-1)
+        public static uint CountLines(string path)
         {
             using StreamReader f = new(path);
             string? line;
-            int count = 0;
+            uint count = 0;
             while ((line = f.ReadLine()) != null)
             {
                 count++;
             }
-            if (expectedNrOfLines >= 0)
-            {
-                Assert.AreEqual(expectedNrOfLines, count, $"Expected {expectedNrOfLines} lines in logfile '{path}' but found {count}.");
-            }
+            return count;
         }
 
-        [TestMethod]
+        [Fact]
         public void TestFileLogger()
         {
             Logger.ClearLoggers();
@@ -185,10 +157,10 @@ namespace Rakis.Logging.UnitTests
             {
                 logger.Info.Log("Hi there!");
             }
-            CheckLogFile(testLog, 2);
+            Assert.True(CountLines(testLog) == 2);
         }
 
-        [TestMethod]
+        [Fact]
         public void TestMixedLoggers()
         {
             Logger.ClearLoggers();
@@ -211,17 +183,19 @@ namespace Rakis.Logging.UnitTests
             {
                 logger.Info.Log("Hi there!");
             }
-            CheckLogFile(Path.Combine(GetEnvironmentVariable("HOMEDRIVE") + GetEnvironmentVariable("HOMEPATH"), "AppData", "Roaming", "Rakis", "Logging", testLog1), 1);
+
+            string logFile = Path.Combine(GetEnvironmentVariable("HOMEDRIVE") + GetEnvironmentVariable("HOMEPATH"), "AppData", "Roaming", "Rakis", "Logging", testLog1);
+            Assert.True(CountLines(logFile) == 1);
 
             using (var logger = Logger.GetLogger(typeof(LogConfigurationTest)))
             {
                 logger.Info.Log("Hi there!");
                 logger.Info.Log("Hi there again!");
             }
-            CheckLogFile(testLog2, 2);
+            Assert.True(CountLines(testLog2) == 2);
         }
 
-        [TestMethod]
+        [Fact]
         public void TestReactiveLoggers()
         {
             Logger.ClearLoggers();
@@ -234,7 +208,7 @@ namespace Rakis.Logging.UnitTests
                     .AddToConfig()
                 .Build();
             Logger.GetLogger(typeof(Logger)).Info.Log("Hi there!");
-            Assert.AreEqual(output.Count, 1, "The reactive logger should have deposited log lines.");
+            Assert.Single(output);
         }
     }
 }

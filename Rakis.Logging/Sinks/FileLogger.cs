@@ -45,7 +45,7 @@ namespace Rakis.Logging.Sinks
             Strategy = logStrategy;
 
             string dirPath = Path.GetDirectoryName(LogPath);
-            if (!Directory.Exists(dirPath))
+            if ((dirPath != "") && !Directory.Exists(dirPath))
             {
                 Directory.CreateDirectory(dirPath);
             }
