@@ -3,6 +3,17 @@
 This library provides some simple support for logging, with output sent to the console, files, a (reactive) `IObserver`,
 or any other custom sink. Configuration is done using a simple text file or a `Configurer`.
 
+## Release notes
+
+### version 0.14.0
+
+* Fixed TargetPlatforms to net6.0-windows and net8.0-windows, since we don't depend on Windows 10 or 11 specific stuff.
+* Fixed TargetPlatforms for the tests.
+
+### version 0.13.0
+
+* Made the library multi-platform, by adding net8.0-windows7.0.
+
 ## Quickstart
 
 ## How to log
